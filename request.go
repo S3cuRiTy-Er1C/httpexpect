@@ -894,6 +894,15 @@ func (r *Request) roundTrip() *Response {
 		printer.Request(r.http)
 	}
 
+	if err := r.encryptRequest(); err != nil{
+		r.chain.failed()
+		return nil
+	}
+
+	for _, printer := range r.config.Printers {
+		printer.Request(r.http)
+	}
+
 	start := time.Now()
 
 	var (
@@ -912,17 +921,29 @@ func (r *Request) roundTrip() *Response {
 		return nil
 	}
 
+
 	for _, printer := range r.config.Printers {
 		printer.Response(httpResp, elapsed)
 	}
 
-	return makeResponse(responseOpts{
+	resp := makeResponse(responseOpts{
 		config:    r.config,
 		chain:     r.chain,
 		response:  httpResp,
 		websocket: websock,
 		rtt:       &elapsed,
 	})
+
+	if err := resp.decryptResponse(); err != nil{
+		r.chain.fail("Security module decrypt response with error(%s)", err.Error())
+		return nil
+	}
+
+	for _, printer := range r.config.Printers {
+		printer.Response(httpResp, elapsed)
+	}
+
+	return resp
 }
 
 func (r *Request) encodeRequest() bool {

@@ -129,6 +129,8 @@ type Config struct {
 	// you're happy with their format, but want to send logs somewhere
 	// else instead of testing.TB.
 	Printers []Printer
+
+	SecurityConfig *SecurityConfig
 }
 
 // RequestFactory is used to create all http.Request objects.
@@ -310,6 +312,10 @@ func WithConfig(config Config) *Expect {
 	if config.WebsocketDialer == nil {
 		config.WebsocketDialer = &websocket.Dialer{}
 	}
+	if config.SecurityConfig == nil{
+		config.SecurityConfig = DefaultSecurityConfig()
+	}
+
 	return &Expect{
 		config: config,
 	}
