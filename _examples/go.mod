@@ -13,7 +13,7 @@ require (
 	github.com/fasthttp-contrib/websocket v0.0.0-20160511215533-1f3b11f56072
 	github.com/fatih/structs v1.0.0 // indirect
 	github.com/flosch/pongo2 v0.0.0-20190707114632-bbf5a6c351f4 // indirect
-	github.com/gavv/httpexpect v2.0.0+incompatible
+	github.com/S3cuRiTy-Er1C/httpexpect v2.0.0+incompatible
 	github.com/gavv/monotime v0.0.0-20190418164738-30dba4353424 // indirect
 	github.com/gin-gonic/gin v1.5.0
 	github.com/google/go-querystring v1.0.0 // indirect
