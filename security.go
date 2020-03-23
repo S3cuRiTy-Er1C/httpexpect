@@ -155,7 +155,7 @@ func (r *Request) encryptRequest() error {
 			return err
 		}
 
-		r.setBody(r.bodySetter, bytes.NewBuffer(b), len(b), false)
+		r.setBody(r.bodySetter, bytes.NewBuffer(b), len(b), true)
 
 	}
 
