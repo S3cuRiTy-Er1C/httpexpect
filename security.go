@@ -104,8 +104,8 @@ func (r *Request) encryptRequest() error {
 				buf := new(bytes.Buffer)
 
 				_, err := buf.ReadFrom(r.http.Body)
-
 				req.RawBody = buf.Bytes()
+				rawJson := json.
 
 				if err != nil {
 					r.config.Reporter.Errorf("Request sign body signature with error(%s)", err.Error())
@@ -157,7 +157,7 @@ func (r *Request) encryptRequest() error {
 			return err
 		}
 
-		r.setBody(r.bodySetter, bytes.NewBuffer(b), len(b), true)
+		r.setBody(r.bodySetter, bytes.NewReader(b), len(b), true)
 	}
 
 	return nil
