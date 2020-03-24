@@ -84,40 +84,6 @@ func (r *Request) encryptRequest() error {
 	printer := r.secGetDebugPrinter()
 
 	req := SecurityRequest{}
-	if r.config.SecurityConfig.SignatureEnabled {
-		req.SigKV = r.config.SecurityConfig.SigKV
-
-		if r.http.Method == http.MethodGet {
-			if len(r.query) > 0 {
-				signature, err := secHmacSHA256String(r.config.SecurityConfig.SigKey, r.http.URL.RawQuery)
-				if err != nil {
-					r.config.Reporter.Errorf("Request sign query signature with error(%s)", err.Error())
-					return err
-				}
-				req.Signature = signature
-			}
-		} else if r.http.Method == http.MethodPost {
-			if r.http.ContentLength > 0 {
-				buf := new(bytes.Buffer)
-
-				_, err := buf.ReadFrom(r.http.Body)
-
-				req.RawBody = buf.Bytes()
-
-				if err != nil {
-					r.config.Reporter.Errorf("Request sign body signature with error(%s)", err.Error())
-					return err
-				}
-
-				signature, err := secHmacSHA256Bytes(r.config.SecurityConfig.SigKey, buf.Bytes())
-				if err != nil {
-					r.config.Reporter.Errorf("Request sign body signature with error(%s)", err.Error())
-					return err
-				}
-				req.Signature = signature
-			}
-		}
-	}
 
 	if r.config.SecurityConfig.EncryptEnabled {
 		req.CtenKV = r.config.SecurityConfig.CtenKV
@@ -135,6 +101,16 @@ func (r *Request) encryptRequest() error {
 			}
 		} else if r.http.Method == http.MethodPost {
 			if r.http.ContentLength > 0 {
+				buf := new(bytes.Buffer)
+
+				_, err := buf.ReadFrom(r.http.Body)
+
+				req.RawBody = buf.Bytes()
+
+				if err != nil {
+					r.config.Reporter.Errorf("Request sign body signature with error(%s)", err.Error())
+					return err
+				}
 
 				encData, err := EncryptECB(r.config.SecurityConfig.SigKey, req.RawBody)
 				if err != nil {
@@ -142,6 +118,32 @@ func (r *Request) encryptRequest() error {
 					return err
 				}
 				req.Content = encData
+			}
+		}
+
+	}
+
+	if r.config.SecurityConfig.SignatureEnabled {
+		req.SigKV = r.config.SecurityConfig.SigKV
+
+		if r.http.Method == http.MethodGet {
+			if len(r.query) > 0 {
+				signature, err := secHmacSHA256String(r.config.SecurityConfig.SigKey, req.Content)
+				if err != nil {
+					r.config.Reporter.Errorf("Request sign query signature with error(%s)", err.Error())
+					return err
+				}
+				req.Signature = signature
+			}
+		} else if r.http.Method == http.MethodPost {
+			if r.http.ContentLength > 0 {
+
+				signature, err := secHmacSHA256String(r.config.SecurityConfig.SigKey, req.Content)
+				if err != nil {
+					r.config.Reporter.Errorf("Request sign body signature with error(%s)", err.Error())
+					return err
+				}
+				req.Signature = signature
 			}
 		}
 
@@ -156,7 +158,6 @@ func (r *Request) encryptRequest() error {
 		}
 
 		r.setBody(r.bodySetter, bytes.NewBuffer(b), len(b), true)
-
 	}
 
 	return nil
