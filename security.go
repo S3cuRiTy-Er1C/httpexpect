@@ -166,7 +166,7 @@ func (r *Request) encryptRequest() error {
 func (r *Response) decryptResponse() error {
 	if r.config.SecurityConfig.EncryptEnabled {
 
-		content := SecurityResponse{}
+		content := &SecurityResponse{}
 		if err := json.Unmarshal(r.content, content); err != nil {
 			r.config.Reporter.Errorf("Decrypt security response with error(%s)", err.Error())
 			return err
