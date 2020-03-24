@@ -136,7 +136,7 @@ func (r *Request) encryptRequest() error {
 		} else if r.http.Method == http.MethodPost {
 			if r.http.ContentLength > 0 {
 
-				encData, err := secHmacSHA256Bytes(r.config.SecurityConfig.SigKey, req.RawBody)
+				encData, err := EncryptECB(r.config.SecurityConfig.SigKey, req.RawBody)
 				if err != nil {
 					r.config.Reporter.Errorf("Request sign body signature with error(%s)", err.Error())
 					return err
