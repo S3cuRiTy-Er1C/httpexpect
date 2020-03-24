@@ -57,14 +57,28 @@ func DefaultSecurityConfig() *SecurityConfig {
 
 func (r *SecurityRequest) secRequestEncodeParams() string {
 	v := url.Values{
-		"st": []string{r.Content},
-		"sgka": []string{r.SigKV},
+		"st":    []string{r.Content},
+		"sgka":  []string{r.SigKV},
 		"stcka": []string{r.CtenKV},
-		"sg": []string{r.Signature},
-		"stc": []string{"v2"},
+		"sg":    []string{r.Signature},
+		"stc":   []string{"v2"},
 	}
 
 	return v.Encode()
+}
+
+func secParams2JsonString(d *url.Values) (string, error) {
+	datas := map[string]interface{}{}
+
+	for k, v := range *d {
+		datas[k] = v[0]
+	}
+
+	if result, err := json.Marshal(datas); err != nil {
+		return "", err
+	} else {
+		return string(result), nil
+	}
 }
 
 func secHmacSHA256String(k string, msg string) (string, error) {
@@ -104,7 +118,14 @@ func (r *Request) encryptRequest() error {
 
 		if r.http.Method == http.MethodGet {
 			if len(r.query) > 0 {
-				encData, err := EncryptECB(r.config.SecurityConfig.CtenKey, []byte(r.http.URL.RawQuery))
+				//框架这里将 params 装成json string 然后encrypt
+				paramsJson, err := secParams2JsonString(&r.query)
+				if err != nil{
+					r.config.Reporter.Errorf("Parse params to json with error(%s)", err.Error())
+					return err
+				}
+
+				encData, err := EncryptECB(r.config.SecurityConfig.CtenKey, []byte(paramsJson))
 				if err != nil {
 					r.config.Reporter.Errorf("Request encrypt query signature with error(%s)", err.Error())
 					return err
