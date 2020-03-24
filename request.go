@@ -939,10 +939,6 @@ func (r *Request) roundTrip() *Response {
 		return nil
 	}
 
-	for _, printer := range r.config.Printers {
-		printer.Response(resp.resp, elapsed)
-	}
-
 	return resp
 }
 

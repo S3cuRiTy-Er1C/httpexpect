@@ -67,8 +67,8 @@ func secHmacSHA256Bytes(k string, msg []byte) (string, error) {
 	return fmt.Sprintf("%x", mac.Sum(nil)), nil
 }
 
-func (r *Request) secGetDebugPrinter() *DebugPrinter {
-	for _, print := range r.config.Printers {
+func (c *Config) secGetDebugPrinter() *DebugPrinter{
+	for _, print := range c.Printers {
 		switch print.(type) {
 		case DebugPrinter:
 			v, ok := print.(DebugPrinter)
@@ -81,7 +81,7 @@ func (r *Request) secGetDebugPrinter() *DebugPrinter {
 }
 
 func (r *Request) encryptRequest() error {
-	printer := r.secGetDebugPrinter()
+	printer := r.config.secGetDebugPrinter()
 
 	req := SecurityRequest{}
 
@@ -164,6 +164,8 @@ func (r *Request) encryptRequest() error {
 
 //
 func (r *Response) decryptResponse() error {
+	printer := r.config.secGetDebugPrinter()
+
 	if r.config.SecurityConfig.EncryptEnabled {
 
 		content := new(SecurityResponse)
@@ -191,6 +193,10 @@ func (r *Response) decryptResponse() error {
 		if err != nil {
 			r.config.Reporter.Errorf("Marshal security response with error(%s)", err.Error())
 			return err
+		}
+
+		if printer != nil{
+			printer.logger.Logf("Decrypted content: %s\n", result)
 		}
 
 		r.content = result
