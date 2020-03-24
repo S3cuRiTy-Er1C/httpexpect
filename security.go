@@ -111,7 +111,7 @@ func (r *Request) encryptRequest() error {
 					return err
 				}
 
-				encData, err := EncryptECB(r.config.SecurityConfig.SigKey, req.RawBody)
+				encData, err := EncryptECB(r.config.SecurityConfig.CtenKey, req.RawBody)
 				if err != nil {
 					r.config.Reporter.Errorf("Request sign body signature with error(%s)", err.Error())
 					return err
