@@ -166,9 +166,9 @@ func (r *Request) encryptRequest() error {
 func (r *Response) decryptResponse() error {
 	if r.config.SecurityConfig.EncryptEnabled {
 
-		content := &SecurityResponse{}
-		if err := json.Unmarshal(r.content, content); err != nil {
-			r.config.Reporter.Errorf("Decrypt security response with error(%s)", err.Error())
+		content := new(SecurityResponse)
+		if err := json.Unmarshal(r.content, &content); err != nil {
+			r.config.Reporter.Errorf("Unmarshal security response with error(%s)", err.Error())
 			return err
 		}
 
@@ -189,7 +189,7 @@ func (r *Response) decryptResponse() error {
 
 		result, err := json.Marshal(resp)
 		if err != nil {
-			r.config.Reporter.Errorf("Decrypt security response with error(%s)", err.Error())
+			r.config.Reporter.Errorf("Marshal security response with error(%s)", err.Error())
 			return err
 		}
 
