@@ -228,7 +228,7 @@ func (r *Response) decryptResponse() error {
 				return err
 			}
 
-			resp["data"] = datas
+			resp["data"] = string(datas)
 		}
 
 		result, err := json.Marshal(resp)
