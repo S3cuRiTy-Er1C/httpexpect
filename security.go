@@ -56,13 +56,14 @@ func DefaultSecurityConfig() *SecurityConfig {
 }
 
 func (r *SecurityRequest) secRequestEncodeParams() string {
-	v := new(url.Values)
-	//
-	v.Set("st", r.Content)
-	v.Set("sgka", r.SigKV)
-	v.Set("stcka", r.CtenKV)
-	v.Set("sg", r.Signature)
-	v.Set("stc", "v2")
+	v := url.Values{
+		"st": []string{r.Content},
+		"sgka": []string{r.SigKV},
+		"stcka": []string{r.CtenKV},
+		"sg": []string{r.Signature},
+		"stc": []string{"v2"},
+	}
+
 	return v.Encode()
 }
 
