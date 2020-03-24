@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 )
 
 type SecurityConfig struct {
@@ -54,6 +55,17 @@ func DefaultSecurityConfig() *SecurityConfig {
 	}
 }
 
+func (r *SecurityRequest) secRequestEncodeParams() string {
+	v := new(url.Values)
+	//
+	v.Set("st", r.Content)
+	v.Set("sgka", r.SigKV)
+	v.Set("stcka", r.CtenKV)
+	v.Set("sg", r.Signature)
+	v.Set("stc", "v2")
+	return v.Encode()
+}
+
 func secHmacSHA256String(k string, msg string) (string, error) {
 	return secHmacSHA256Bytes(k, []byte(msg))
 }
@@ -67,7 +79,7 @@ func secHmacSHA256Bytes(k string, msg []byte) (string, error) {
 	return fmt.Sprintf("%x", mac.Sum(nil)), nil
 }
 
-func (c *Config) secGetDebugPrinter() *DebugPrinter{
+func (c *Config) secGetDebugPrinter() *DebugPrinter {
 	for _, print := range c.Printers {
 		switch print.(type) {
 		case DebugPrinter:
@@ -150,13 +162,21 @@ func (r *Request) encryptRequest() error {
 			printer.logger.Logf("Security obj: %+v", req)
 		}
 
-		b, err := json.Marshal(req)
-		if err != nil {
-			r.config.Reporter.Errorf("Marshal security request with error(%s)", err.Error())
-			return err
+		if r.http.Method == http.MethodPost {
+
+			b, err := json.Marshal(req)
+			if err != nil {
+				r.config.Reporter.Errorf("Marshal security request with error(%s)", err.Error())
+				return err
+			}
+
+			r.setBody(r.bodySetter, bytes.NewReader(b), len(b), true)
+		} else if r.http.Method == http.MethodGet {
+			params := req.secRequestEncodeParams()
+
+			r.http.URL.RawQuery = params
 		}
 
-		r.setBody(r.bodySetter, bytes.NewReader(b), len(b), true)
 	}
 
 	return nil
@@ -195,7 +215,7 @@ func (r *Response) decryptResponse() error {
 			return err
 		}
 
-		if printer != nil{
+		if printer != nil {
 			printer.logger.Logf("Decrypted content: %s\n", result)
 		}
 
