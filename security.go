@@ -228,7 +228,13 @@ func (r *Response) decryptResponse() error {
 				return err
 			}
 
-			resp["data"] = string(datas)
+			obj := new(interface{})
+			if err := json.Unmarshal(datas, &obj); err != nil{
+				r.config.Reporter.Errorf("Unmarshal decrypted data with error(%s)", err.Error())
+				return err
+			}
+
+			resp["data"] = obj
 		}
 
 		result, err := json.Marshal(resp)
@@ -238,7 +244,7 @@ func (r *Response) decryptResponse() error {
 		}
 
 		if printer != nil {
-			printer.logger.Logf("Decrypted content: %s\n", result)
+			printer.logger.Logf("Decrypted response: %s\n", result)
 		}
 
 		r.content = result
